@@ -13,6 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("BillingDb"));
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<RetryService>();
 
 // Database Connection
 builder.Services.AddDbContext<BillingDbContext>(options =>
@@ -20,6 +21,7 @@ builder.Services.AddDbContext<BillingDbContext>(options =>
 
 // Register worker
 builder.Services.AddHostedService<PaymentRetryWorker>();
+
 
 // Build Application
 var app = builder.Build();
@@ -36,11 +38,20 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 // redirect root to swagger
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
-// Crate schema on startup
+// Create schema on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
     db.Database.Migrate();
+}
+// Seed database on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
+
+    db.Database.Migrate();
+
+    await DbSeeder.SeedAsync(db);
 }
 
 app.Run();

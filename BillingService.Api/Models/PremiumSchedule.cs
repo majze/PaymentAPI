@@ -6,9 +6,13 @@ public class PremiumSchedule
 
     public Guid PolicyId { get; set; }
 
-    public string Status { get; set; }
+    public string PolicyNumber { get; set; } = string.Empty;
 
-    public decimal AmountDue { get; set; }
+    public string Status { get; set; } = string.Empty;
+
+    public decimal CoveredAmount { get; set; } = default;
+
+    public decimal AmountDue { get; set; } = default;
 
     public DateTime DueDate { get; set; }
 }

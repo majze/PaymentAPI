@@ -28,6 +28,14 @@ public class PoliciesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("all-premium-schedules")]
+    public async Task<IActionResult> GetAllPremiumSchedules()
+    {
+        var result = await _context.PremiumSchedules.ToListAsync();
+
+        return Ok(result);
+    }
+
     [HttpGet("delinquent")]
     public async Task<IActionResult> GetDelinquentPolicies()
     {
