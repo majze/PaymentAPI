@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BillingService.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateAgain : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,8 +32,9 @@ namespace BillingService.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PolicyNumber = table.Column<string>(type: "text", nullable: false),
-                    IsDelinquent = table.Column<bool>(type: "boolean", nullable: false)
+                    IsDelinquent = table.Column<bool>(type: "boolean", nullable: false),
+                    CustomerName = table.Column<string>(type: "text", nullable: false),
+                    Premium = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,14 +47,26 @@ namespace BillingService.Api.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     PolicyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PolicyNumber = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
-                    AmountDue = table.Column<decimal>(type: "numeric", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PremiumSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PremiumSchedules_Policies_PolicyId",
+                        column: x => x.PolicyId,
+                        principalTable: "Policies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PremiumSchedules_PolicyId",
+                table: "PremiumSchedules",
+                column: "PolicyId");
         }
 
         /// <inheritdoc />
@@ -63,10 +76,10 @@ namespace BillingService.Api.Migrations
                 name: "PaymentAttempts");
 
             migrationBuilder.DropTable(
-                name: "Policies");
+                name: "PremiumSchedules");
 
             migrationBuilder.DropTable(
-                name: "PremiumSchedules");
+                name: "Policies");
         }
     }
 }

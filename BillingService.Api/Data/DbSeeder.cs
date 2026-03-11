@@ -7,50 +7,87 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(BillingDbContext context)
     {
-        // Debugging development - This will clear the data in case you need to modify the seed script several times like I did.
+        // Reset Data - This will clear the data in case you need to modify the seed script several times like I did.
+        // Comment the two lines out if we want data to persist.
         await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"PremiumSchedules\" RESTART IDENTITY CASCADE;");
         await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Policies\" RESTART IDENTITY CASCADE;");
 
-        if (await context.Policies.AnyAsync())
-            return; // already seeded
+        if (context.Policies.Any())
+            return;
 
-        var policies = new List<Policy>
+        var policy1 = new Policy
         {
-            new Policy
+            Id = Guid.NewGuid(),
+            CustomerName = "Alice Johnson",
+            Premium = 120
+        };
+
+        var policy2 = new Policy
+        {
+            Id = Guid.NewGuid(),
+            CustomerName = "Bob Smith",
+            Premium = 95
+        };
+
+        var policy3 = new Policy
+        {
+            Id = Guid.NewGuid(),
+            CustomerName = "Charlie Brown",
+            Premium = 150
+        };
+
+        context.Policies.AddRange(policy1, policy2, policy3);
+
+        context.PremiumSchedules.AddRange(
+            new PremiumSchedule
             {
-                PolicyNumber = "POL1001",
-                CustomerName = "Alice Johnson",
-                Premium = 120.50m
+                PolicyId = policy1.Id,
+                PolicyNumber = "P001",
+                Status = "delinquent",
+                DueDate = DateTime.UtcNow.AddDays(30),
+                Amount = 120
             },
-            new Policy
+            new PremiumSchedule
             {
-                PolicyNumber = "POL1002",
-                CustomerName = "Bob Smith",
-                Premium = 89.99m
+                PolicyId = policy1.Id,
+                PolicyNumber = "P001",
+                Status = "delinquent",
+                DueDate = DateTime.UtcNow.AddDays(60),
+                Amount = 120
             },
-            new Policy
+            new PremiumSchedule
             {
-                PolicyNumber = "POL1003",
-                CustomerName = "Charlie Brown",
-                Premium = 150.00m
+                PolicyId = policy2.Id,
+                PolicyNumber = "P002",
+                Status = "Payment Due",
+                DueDate = DateTime.UtcNow.AddDays(30),
+                Amount = 95
+            },
+            new PremiumSchedule
+            {
+                PolicyId = policy2.Id,
+                PolicyNumber = "P002",
+                Status = "Payment Due",
+                DueDate = DateTime.UtcNow.AddDays(60),
+                Amount = 95
+            },
+            new PremiumSchedule
+            {
+                PolicyId = policy3.Id,
+                PolicyNumber = "P003",
+                Status = "Payment Due",
+                DueDate = DateTime.UtcNow.AddDays(30),
+                Amount = 150
+            },
+            new PremiumSchedule
+            {
+                PolicyId = policy3.Id,
+                PolicyNumber = "P003",
+                Status = "Payment Due",
+                DueDate = DateTime.UtcNow.AddDays(60),
+                Amount = 150
             }
-        };
-
-        context.Policies.AddRange(policies);
-
-        var schedules = new List<PremiumSchedule>
-        {
-            new PremiumSchedule { PolicyNumber="POL1001", PolicyId=policies[0].Id, Status="Paid", DueDate=DateTime.UtcNow.AddDays(30), CoveredAmount=120.50m },
-            new PremiumSchedule { PolicyNumber="POL1001", PolicyId=policies[0].Id, Status="Paid", DueDate=DateTime.UtcNow.AddDays(60), CoveredAmount=120.50m },
-
-            new PremiumSchedule { PolicyNumber="POL1002", PolicyId=policies[1].Id, Status="Payment Due", AmountDue=30, DueDate=DateTime.UtcNow.AddDays(30), CoveredAmount=89.99m },
-            new PremiumSchedule { PolicyNumber="POL1002", PolicyId=policies[1].Id, Status="Payment Due", AmountDue=30, DueDate=DateTime.UtcNow.AddDays(60), CoveredAmount=89.99m },
-
-            new PremiumSchedule { PolicyNumber="POL1003", PolicyId=policies[2].Id, Status="Delinquent", AmountDue=120, DueDate=DateTime.UtcNow.AddDays(30), CoveredAmount=150.00m },
-            new PremiumSchedule { PolicyNumber="POL1003", PolicyId=policies[2].Id, Status="Delinquent", AmountDue=120, DueDate=DateTime.UtcNow.AddDays(60), CoveredAmount=150.00m }
-        };
-
-        context.PremiumSchedules.AddRange(schedules);
+        );
 
         await context.SaveChangesAsync();
     }

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BillingService.Api.Migrations
 {
     [DbContext(typeof(BillingDbContext))]
-    [Migration("20260311015453_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260311033203_InitialCreateAgain")]
+    partial class InitialCreateAgain
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -57,12 +57,15 @@ namespace BillingService.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsDelinquent")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("PolicyNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<decimal>("Premium")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -75,7 +78,7 @@ namespace BillingService.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("AmountDue")
+                    b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
                     b.Property<DateTime>("DueDate")
@@ -84,13 +87,33 @@ namespace BillingService.Api.Migrations
                     b.Property<Guid>("PolicyId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("PolicyNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PolicyId");
+
                     b.ToTable("PremiumSchedules");
+                });
+
+            modelBuilder.Entity("BillingService.Api.Models.PremiumSchedule", b =>
+                {
+                    b.HasOne("BillingService.Api.Models.Policy", null)
+                        .WithMany("PremiumSchedules")
+                        .HasForeignKey("PolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BillingService.Api.Models.Policy", b =>
+                {
+                    b.Navigation("PremiumSchedules");
                 });
 #pragma warning restore 612, 618
         }

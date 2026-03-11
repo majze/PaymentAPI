@@ -61,10 +61,6 @@ namespace BillingService.Api.Migrations
                     b.Property<bool>("IsDelinquent")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("PolicyNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("Premium")
                         .HasColumnType("numeric");
 
@@ -79,10 +75,7 @@ namespace BillingService.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("AmountDue")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("CoveredAmount")
+                    b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
                     b.Property<DateTime>("DueDate")
@@ -101,7 +94,23 @@ namespace BillingService.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PolicyId");
+
                     b.ToTable("PremiumSchedules");
+                });
+
+            modelBuilder.Entity("BillingService.Api.Models.PremiumSchedule", b =>
+                {
+                    b.HasOne("BillingService.Api.Models.Policy", null)
+                        .WithMany("PremiumSchedules")
+                        .HasForeignKey("PolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BillingService.Api.Models.Policy", b =>
+                {
+                    b.Navigation("PremiumSchedules");
                 });
 #pragma warning restore 612, 618
         }

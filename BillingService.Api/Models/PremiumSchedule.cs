@@ -10,9 +10,7 @@ public class PremiumSchedule
 
     public string Status { get; set; } = string.Empty;
 
-    public decimal CoveredAmount { get; set; } = default;
-
-    public decimal AmountDue { get; set; } = default;
+    public decimal Amount { get; set; } = default;
 
     public DateTime DueDate { get; set; }
 }
