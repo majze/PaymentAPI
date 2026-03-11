@@ -44,10 +44,10 @@ public class PaymentsController(BillingDbContext _context, ILogger<PaymentsContr
             correlationId
         );
 
-        return Ok(new
+        return Ok(new PaymentResponse()
         {
-            result = attempt.Success,
-            attemptId = attempt.Id
+            Success = attempt.Success,
+            AttemptId = attempt.Id
         });
     }
 

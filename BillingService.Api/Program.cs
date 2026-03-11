@@ -21,11 +21,11 @@ builder.Services.AddHostedService<PaymentRetryWorker>();
 
 // Build Application
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+// Enabling swagger in production for demonstration only
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.MapControllers();
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
