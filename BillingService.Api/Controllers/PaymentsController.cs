@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using BillingService.Api.Data;
-using BillingService.Api.Models;
+using BillingService.Api.Services;
 using BillingService.Api.DTO;
 
 namespace BillingService.Api.Controllers;
 
 [ApiController]
 [Route("payments")]
-public class PaymentsController(BillingDbContext _context, ILogger<PaymentsController> _logger) : ControllerBase
+public class PaymentsController(IPaymentService _paymentService, ILogger<PaymentsController> _logger) : ControllerBase
 {
     [HttpPost("attempt")]
     public async Task<IActionResult> AttemptPayment([FromBody] PaymentRequest request)
@@ -18,51 +17,23 @@ public class PaymentsController(BillingDbContext _context, ILogger<PaymentsContr
         // The correlationId will be included in the log, but is fetched here as proof.
         var correlationId = HttpContext.Items["CorrelationId"] as string;
 
-        _logger.LogInformation("Received payment attempt for policy {PolicyId} with requested amount {Amount} {CorrelationId}", 
-            request.PolicyId,
-            request.Amount,
-            correlationId);
+        _logger.LogInformation("Received payment attempt for policy {PolicyId} {CorrelationId}", 
+            request.PolicyId, correlationId);
 
-        var attempt = new PaymentAttempt
-        {
-            Id = Guid.NewGuid(),
-            PolicyId = request.PolicyId,
-            Amount = request.Amount,
-            AttemptDate = DateTime.UtcNow,
-            Success = request.shouldSucceed,
-            RetryCount = 0
-        };
+        // Embrace N-tier architecture where business logic is defined in services, 
+        // while controllers are responsible for routing, logging, and transforming responses. 
+        var result = await _paymentService.ProcessPaymentAsync(request);
 
-        _context.PaymentAttempts.Add(attempt);
-        await _context.SaveChangesAsync();
+        _logger.LogInformation("Payment recorded. AttemptId={AttemptId} {CorrelationId}",
+            result.AttemptId, correlationId);
 
-        _logger.LogInformation(
-            "Payment attempt recorded. PolicyId={PolicyId} Result={Success} AttemptId={AttemptId} {CorrelationId}",
-            request.PolicyId,
-            attempt.Success,
-            attempt.Id,
-            correlationId
-        );
-
-        return Ok(new PaymentResponse()
-        {
-            Success = attempt.Success,
-            AttemptId = attempt.Id
-        });
+        return Ok(result);
     }
 
     [HttpPost("retry/{paymentId}")]
     public async Task<IActionResult> RetryPayment(Guid paymentId)
     {
-        var payment = await _context.PaymentAttempts.FindAsync(paymentId);
-
-        if (payment == null)
-            return NotFound();
-
-        payment.RetryCount += 1;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(payment);
+        var payment = await _paymentService.RetryPaymentAsync(paymentId);
+        return payment == null ? NotFound() : Ok(payment);
     }
 }

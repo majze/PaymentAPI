@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BillingService.Api.Data;
 using BillingService.Api.Workers;
 using BillingService.Api.Middleware;
+using BillingService.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("BillingDb"));
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Database Connection
 builder.Services.AddDbContext<BillingDbContext>(options =>
@@ -33,5 +35,12 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 
 // redirect root to swagger
 app.MapGet("/", () => Results.Redirect("/swagger"));
+
+// Crate schema on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
