@@ -32,7 +32,7 @@ public class PaymentRetryWorker : BackgroundService
                 _logger.LogError(ex, "Error during retry processing");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(60), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
     }
 

@@ -34,6 +34,8 @@ public class RetryService
 
             if (success)
                 payment.Success = true;
+            else
+                _logger.LogError("Failed retry of payment {PaymentId}", payment.Id);
         }
 
         await _context.SaveChangesAsync();

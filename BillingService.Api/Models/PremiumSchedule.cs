@@ -6,7 +6,7 @@ public class PremiumSchedule
 
     public Guid PolicyId { get; set; }
 
-    public bool Status { get; set; }
+    public string Status { get; set; }
 
     public decimal AmountDue { get; set; }
 

@@ -7,25 +7,21 @@ namespace BillingService.Api.Controllers;
 
 [ApiController]
 [Route("payments")]
-public class PaymentsController : ControllerBase
+public class PaymentsController(BillingDbContext _context, ILogger<PaymentsController> _logger) : ControllerBase
 {
-    private readonly BillingDbContext _context;
-    private readonly ILogger<PaymentsController> _logger;
-
-    public PaymentsController(BillingDbContext context, ILogger<PaymentsController> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     [HttpPost("attempt")]
     public async Task<IActionResult> AttemptPayment([FromBody] PaymentRequest request)
     {
-        _logger.LogInformation("Received payment attempt for policy {PolicyId} with requested amount {Amount}", 
-            request.PolicyId,
-            request.Amount);
+        // Use middleware to include correlation id in logs,
+        // in reality this is more important when connecting multiple services,
+        // and increased observability by allowing a full trace to identified.
+        // The correlationId will be included in the log, but is fetched here as proof.
+        var correlationId = HttpContext.Items["CorrelationId"] as string;
 
-        
+        _logger.LogInformation("Received payment attempt for policy {PolicyId} with requested amount {Amount} {CorrelationId}", 
+            request.PolicyId,
+            request.Amount,
+            correlationId);
 
         var attempt = new PaymentAttempt
         {
@@ -41,10 +37,11 @@ public class PaymentsController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Payment attempt recorded. PolicyId={PolicyId} Result={Success} AttemptId={AttemptId}",
+            "Payment attempt recorded. PolicyId={PolicyId} Result={Success} AttemptId={AttemptId} {CorrelationId}",
             request.PolicyId,
             attempt.Success,
-            attempt.Id
+            attempt.Id,
+            correlationId
         );
 
         return Ok(new
