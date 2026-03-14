@@ -7,5 +7,5 @@ public class PaymentRequest
     public decimal Amount { get; set; }
 
     // Manual way of triggering a failure
-    public bool shouldSucceed { get; set; } 
+    public bool ShouldSucceed { get; set; } 
 }

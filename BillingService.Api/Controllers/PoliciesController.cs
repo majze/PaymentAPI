@@ -2,52 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BillingService.Api.Data;
 using BillingService.Api.DTO;
+using BillingService.Api.Services;
 
 namespace BillingService.Api.Controllers;
 
 [ApiController]
 [Route("payments")]
-public class PoliciesController : ControllerBase
+public class PoliciesController(PoliciesService _policiesService) : ControllerBase
 {
-    private readonly BillingDbContext _context;
-    private readonly ILogger<PoliciesController> _logger;
-
-    public PoliciesController(BillingDbContext context, ILogger<PoliciesController> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     [HttpGet("{policyId}/premium-schedule")]
-    public async Task<IActionResult> GetPremiumSchedule(Guid policyId)
+    public async Task<IActionResult> GetPremiumSchedule(Guid premiumScheduleId)
     {
-        var result = await _context.PremiumSchedules
-            .Where(p => p.PolicyId == policyId)
-            .ToListAsync();
-
-        return Ok(result);
-    }
-
-    [HttpGet("all-premium-schedules")]
-    public async Task<IActionResult> GetAllPremiumSchedules()
-    {
-        var result = await _context.PremiumSchedules.ToListAsync();
-
-        return Ok(result);
-    }
-
-    [HttpGet("delinquent")]
-    public async Task<IActionResult> GetDelinquentPolicies()
-    {
-        var overduePolicies = await _context.PremiumSchedules
-            .Where(p => p.Status == "overdue")
-            .Select(p => new
-            {
-                p.PolicyId,
-                p.DueDate
-            })
-            .ToListAsync();
-
-        return Ok(overduePolicies);
+        PolicyResponse response = await _policiesService.GetPremiumSchedule(premiumScheduleId);
+        return Ok(response);
     }
 }

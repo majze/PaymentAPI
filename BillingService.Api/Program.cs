@@ -13,6 +13,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("BillingDb"));
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<PoliciesService, PoliciesService>();
 builder.Services.AddScoped<RetryService>();
 
 // Database Connection
@@ -41,14 +43,19 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
     
+    bool shouldPersistData = false;
+
     // Retry logic to wait for Postgres to wake up
     for (int i = 0; i < 10; i++) 
     {
         try 
         {
-            await db.Database.EnsureDeletedAsync();
-            await db.Database.MigrateAsync();
-            await DbSeeder.SeedAsync(db);
+            if (!shouldPersistData) {
+                await db.Database.EnsureDeletedAsync();
+                await db.Database.MigrateAsync();
+            }
+
+            await DbSeeder.SeedAsync(db, shouldPersistData);
             break;
         }
         catch (Npgsql.NpgsqlException)

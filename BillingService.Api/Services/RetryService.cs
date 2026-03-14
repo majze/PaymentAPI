@@ -1,22 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using BillingService.Api.Data;
-using BillingService.Api.DTO;
 
 namespace BillingService.Api.Services;
 
-public class RetryService
+public class RetryService(BillingDbContext _context, ILogger<RetryService> _logger)
 {
-    private readonly BillingDbContext _context;
-    private readonly ILogger<RetryService> _logger;
-
-    public RetryService(
-        BillingDbContext context,
-        ILogger<RetryService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     public async Task RetryFailedPayments()
     {
         var failed = await _context.PaymentAttempts
