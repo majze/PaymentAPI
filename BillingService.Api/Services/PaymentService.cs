@@ -1,10 +1,10 @@
-using BillingService.Api.Data;
 using BillingService.Api.DTO;
 using BillingService.Api.Models;
+using BillingService.Api.Repositories;
 
 namespace BillingService.Api.Services;
 
-public class PaymentService(BillingDbContext _context, ILogger<PaymentService> _logger) : IPaymentService
+public class PaymentService(IPaymentPolicyRepository _repository, ILogger<PaymentService> _logger) : IPaymentService
 {
     public async Task<PaymentResponse> ProcessPaymentAsync(PaymentRequest request)
     {
@@ -25,8 +25,8 @@ public class PaymentService(BillingDbContext _context, ILogger<PaymentService> _
                 request.Amount, 
                 attempt.Id);
 
-            _context.PaymentAttempts.Add(attempt);
-            await _context.SaveChangesAsync();
+            await _repository.AddPaymentAttemptAsync(attempt);
+            await _repository.SaveChangesAsync();
 
             _logger.LogInformation("Payment attempt successful {Id}", attempt.Id);
 
@@ -46,11 +46,12 @@ public class PaymentService(BillingDbContext _context, ILogger<PaymentService> _
         {
             _logger.LogInformation("Retry payment attempt {Id}", paymentId);
 
-            var payment = await _context.PaymentAttempts.FindAsync(paymentId);
+            var payment = await _repository.GetPaymentAttemptAsync(paymentId);
             if (payment == null) return null;
 
             payment.RetryCount += 1;
-            await _context.SaveChangesAsync();
+            await _repository.UpdatePaymentAttemptAsync(payment);
+            await _repository.SaveChangesAsync();
 
             _logger.LogInformation("Retry payment attempt successful {Id}", paymentId);
 

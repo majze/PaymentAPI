@@ -1,17 +1,17 @@
-using BillingService.Api.Data;
-using Microsoft.EntityFrameworkCore;
+using BillingService.Api.Repositories;
 using BillingService.Api.Models;
+using BillingService.Api.DTO;
 
 namespace BillingService.Api.Services;
 
-public class AdminService(BillingDbContext _context, ILogger<AdminService> _logger) : IAdminService
+public class AdminService(IPaymentPolicyRepository _repository, ILogger<AdminService> _logger) : IAdminService
 {
     public async Task<List<PremiumSchedule>> GetAllPremiumSchedulesAsync()
     {
         try
         {
             _logger.LogInformation("Fetching all premium schedules");
-            return await _context.PremiumSchedules.ToListAsync();
+            return await _repository.GetAllPremiumSchedulesAsync();
         }
         catch (Exception ex)
         {
@@ -25,11 +25,7 @@ public class AdminService(BillingDbContext _context, ILogger<AdminService> _logg
         try
         {
             _logger.LogInformation("Fetching all delinquent policies");
-            
-            return await _context.PremiumSchedules
-                .Where(p => p.Status == "delinquent")
-                .Select(p => new DelinquentPolicyDto(p.PolicyId, p.DueDate))
-                .ToListAsync();
+            return await _repository.GetDelinquentPoliciesAsync();
         }
         catch (Exception ex)
         {

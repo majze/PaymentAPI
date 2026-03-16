@@ -1,9 +1,9 @@
-using BillingService.Api.Data;
 using BillingService.Api.DTO;
+using BillingService.Api.Repositories;
 
 namespace BillingService.Api.Services;
 
-public class PoliciesService(BillingDbContext _context, ILogger<PoliciesService> _logger)
+public class PoliciesService(IPaymentPolicyRepository _repository, ILogger<PoliciesService> _logger) : IPoliciesService
 {
     public async Task<PolicyResponse> GetPremiumSchedule(Guid premiumScheduleId)
     {
@@ -11,7 +11,7 @@ public class PoliciesService(BillingDbContext _context, ILogger<PoliciesService>
         {
             _logger.LogInformation("Fetching premium schedule {premiumScheduleId}", premiumScheduleId);
 
-            var premiumSchedule = await _context.PremiumSchedules.FindAsync(premiumScheduleId);
+            var premiumSchedule = await _repository.GetPremiumScheduleAsync(premiumScheduleId);
 
             return new PolicyResponse()
             {

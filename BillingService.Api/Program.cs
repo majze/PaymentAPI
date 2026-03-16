@@ -3,6 +3,7 @@ using BillingService.Api.Data;
 using BillingService.Api.Workers;
 using BillingService.Api.Middleware;
 using BillingService.Api.Services;
+using BillingService.Api.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +15,11 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("BillingDb"));
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddScoped<PoliciesService, PoliciesService>();
+builder.Services.AddScoped<IPoliciesService, PoliciesService>();
 builder.Services.AddScoped<RetryService>();
+
+// Repostiories
+builder.Services.AddScoped<IPaymentPolicyRepository, PaymentPolicyRepository>();
 
 // Database Connection
 builder.Services.AddDbContext<BillingDbContext>(options =>

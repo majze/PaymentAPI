@@ -8,7 +8,7 @@ namespace BillingService.Api.Controllers;
 
 [ApiController]
 [Route("payments")]
-public class PoliciesController(PoliciesService _policiesService) : ControllerBase
+public class PoliciesController(IPoliciesService _policiesService) : ControllerBase
 {
     [HttpGet("{policyId}/premium-schedule")]
     public async Task<IActionResult> GetPremiumSchedule(Guid premiumScheduleId)

@@ -1,16 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using BillingService.Api.Data;
+using BillingService.Api.Repositories;
 
 namespace BillingService.Api.Services;
 
-public class RetryService(BillingDbContext _context, ILogger<RetryService> _logger)
+public class RetryService(IPaymentPolicyRepository _repository, ILogger<RetryService> _logger)
 {
     public async Task RetryFailedPayments()
     {
-        var failed = await _context.PaymentAttempts
-            .Where(p => !p.Success &&
-                        p.RetryCount < 3)
-            .ToListAsync();
+        var failed = await _repository.GetFailedPaymentsAsync();
 
         foreach (var payment in failed)
         {
@@ -26,6 +22,6 @@ public class RetryService(BillingDbContext _context, ILogger<RetryService> _logg
                 _logger.LogError("Failed retry of payment {PaymentId}", payment.Id);
         }
 
-        await _context.SaveChangesAsync();
+        await _repository.SaveChangesAsync();
     }
 }

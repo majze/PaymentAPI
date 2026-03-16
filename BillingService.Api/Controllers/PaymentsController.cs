@@ -28,6 +28,17 @@ public class PaymentsController(IPaymentService _paymentService, ILogger<Payment
     public async Task<IActionResult> RetryPayment(Guid paymentId)
     {
         var payment = await _paymentService.RetryPaymentAsync(paymentId);
-        return payment == null ? NotFound() : Ok(payment);
+        if (payment != null)
+        {
+            _logger.LogInformation("Payment retry successful. AttemptId={AttemptId}", payment.Id);
+            var response = new PaymentResponse { AttemptId = payment.Id, Success = true };
+            return Ok(response);
+        }
+        else
+        {
+            _logger.LogWarning("Payment retry failed. PaymentId={PaymentId} not found.", paymentId);
+            var response = new PaymentResponse { AttemptId = paymentId, Success = false };
+            return NotFound(response);
+        }
     }
 }
